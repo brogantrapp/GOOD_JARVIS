@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <title>J.A.R.V.I.S.</title>
+    <meta
+      name="description"
+      content="Just A Rather Very Intelligent System — a personal, voice-first assistant."
+    />
+    <meta name="theme-color" content="#04070d" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="JARVIS" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="icon.svg" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+
+  <body>
+    <div class="app">
+      <div class="bg-grid" aria-hidden="true"></div>
+      <div class="bg-vignette" aria-hidden="true"></div>
+      <div class="scanlines" aria-hidden="true"></div>
+
+      <!-- ───────────────────────── header ───────────────────────── -->
+      <header class="hud-top">
+        <div class="brand">
+          <div class="brand__mark" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div>
+            <h1>J.A.R.V.I.S<span class="brand__dot">.</span></h1>
+            <p>Just A Rather Very Intelligent System</p>
+          </div>
+        </div>
+
+        <div class="hud-top__right">
+          <span class="pill" id="providerPill" title="Language core">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+              <path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8" />
+            </svg>
+            <span id="providerLabel">connecting</span>
+          </span>
+          <span class="clock" id="clock" title="Local time"></span>
+          <button class="icon-btn icon-btn--ghost" id="openSettings" aria-label="Open settings" title="Systems">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3.2" />
+              <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <div class="notice" id="notice" role="status" hidden>
+        <span id="noticeText"></span>
+        <button id="dismissNotice" aria-label="Dismiss">✕</button>
+      </div>
+
+      <!-- ───────────────────────── stage ───────────────────────── -->
+      <main class="stage">
+        <section class="stage__core">
+          <div class="reactor" id="reactor" data-state="idle" aria-hidden="true">
+            <div class="reactor__halo"></div>
+            <svg viewBox="0 0 400 400" class="reactor__svg" id="reactorSvg" role="presentation"></svg>
+          </div>
+
+          <div class="stage__status">
+            <span class="dot dot--idle" id="statusDot" aria-hidden="true"></span>
+            <span class="stage__status-label" id="statusLabel">Standing by</span>
+          </div>
+
+          <canvas class="visualizer" id="visualizer" data-state="idle" aria-hidden="true"></canvas>
+        </section>
+
+        <section class="stage__console">
+          <div class="transcript" id="transcript"></div>
+
+          <form class="composer" id="composer">
+            <div class="composer__field">
+              <textarea
+                class="composer__input"
+                id="input"
+                rows="1"
+                placeholder="Initialising…"
+                aria-label="Message J.A.R.V.I.S."
+                autocomplete="off"
+                spellcheck="false"
+                maxlength="2000"
+              ></textarea>
+
+              <div class="composer__actions">
+                <button
+                  type="button"
+                  class="icon-btn icon-btn--ghost"
+                  id="stopBtn"
+                  title="Stop speaking"
+                  aria-label="Stop speaking"
+                  hidden
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+                    <rect x="6.5" y="6.5" width="11" height="11" rx="2" />
+                  </svg>
+                </button>
+
+                <button
+                  type="button"
+                  class="icon-btn"
+                  id="micBtn"
+                  title="Speak to JARVIS"
+                  aria-label="Toggle microphone"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" id="micIcon">
+                    <rect x="9" y="2.5" width="6" height="11" rx="3" />
+                    <path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M8.5 21h7" />
+                  </svg>
+                  <span class="pulse-dot" id="micPulse" hidden></span>
+                </button>
+
+                <button type="submit" class="icon-btn icon-btn--send" id="sendBtn" aria-label="Send" title="Send (Enter)" disabled>
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4 12 20 4l-7.2 16-2.3-6.5L4 12Z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="composer__foot">
+              <span class="composer__hint">
+                <span class="kbd">Enter</span> to send · <span class="kbd">Space</span> to talk ·
+                <span class="kbd">Esc</span> to hush
+              </span>
+              <span class="composer__state" id="stateLabel">ready</span>
+            </div>
+          </form>
+        </section>
+      </main>
+
+      <!-- ───────────────────────── boot overlay ───────────────────────── -->
+      <div class="boot" id="boot" role="dialog" aria-label="Activate J.A.R.V.I.S.">
+        <div class="boot__panel">
+          <div class="boot__ring"><img src="icon.svg" alt="" width="132" height="132" /></div>
+          <h2>J.A.R.V.I.S. is standing by</h2>
+          <p>
+            Initialise to grant microphone access and enable the voice interface. You can also type
+            at any time.
+          </p>
+          <ul class="boot__list">
+            <li>Wake word: <b>&ldquo;Jarvis&rdquo;</b> then your request</li>
+            <li>Speak or type — both work</li>
+            <li>Works best in Chrome, Edge or Safari</li>
+          </ul>
+          <button class="btn btn--primary btn--lg" id="initialise">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+              <path d="M12 3v9M7.1 6.3a8 8 0 1 0 9.8 0" />
+            </svg>
+            Initialise
+          </button>
+          <button class="boot__skip" id="skipBoot">Continue without voice</button>
+        </div>
+      </div>
+
+      <!-- ───────────────────────── settings panel ───────────────────────── -->
+      <div class="scrim" id="scrim"></div>
+
+      <aside class="panel" id="panel" aria-label="Settings" aria-hidden="true">
+        <header class="panel__head">
+          <div>
+            <h2>Systems</h2>
+            <p class="panel__sub">Diagnostics and preferences</p>
+          </div>
+          <button class="icon-btn icon-btn--ghost" id="closeSettings" aria-label="Close settings">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
+              <path d="M6 6l12 12M18 6 6 18" />
+            </svg>
+          </button>
+        </header>
+
+        <div class="panel__body">
+          <section class="panel__section">
+            <h3>Status</h3>
+            <dl class="diag">
+              <div>
+                <dt>Language core</dt>
+                <dd id="diagCore" class="warn">checking…</dd>
+              </div>
+              <div>
+                <dt>Voice engine</dt>
+                <dd id="diagEngine">browser synthesis</dd>
+              </div>
+              <div>
+                <dt>Recognition</dt>
+                <dd id="diagRecognition">checking…</dd>
+              </div>
+              <div>
+                <dt>System voice</dt>
+                <dd id="diagSystemVoice">—</dd>
+              </div>
+            </dl>
+            <p class="note" id="noteNoKey" hidden>
+              No API key detected. Local commands work, but conversation is limited. Add
+              <code>GEMINI_API_KEY</code> (free) in Vercel → Settings → Environment Variables, then
+              redeploy.
+            </p>
+            <p class="note" id="noteNoTts" hidden>
+              Add <code>ELEVENLABS_API_KEY</code> for the cinematic film-accurate voice. Until then
+              the browser&rsquo;s best British male voice is used.
+            </p>
+          </section>
+
+          <section class="panel__section">
+            <h3>Listening</h3>
+            <div class="seg" id="wakeModeSeg">
+              <button type="button" class="seg__btn" data-mode="wake">Wake word</button>
+              <button type="button" class="seg__btn" data-mode="always">Always on</button>
+              <button type="button" class="seg__btn" data-mode="manual">Push to talk</button>
+            </div>
+            <p class="note" id="wakeModeNote"></p>
+
+            <label class="switch">
+              <input type="checkbox" id="speakReplies" />
+              <span class="switch__track" aria-hidden="true"><span class="switch__thumb"></span></span>
+              <span>Speak replies aloud</span>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Address me as</span>
+              <input class="text-input" id="userTitle" maxlength="40" placeholder="sir" />
+            </label>
+          </section>
+
+          <section class="panel__section">
+            <h3>Voice</h3>
+            <label class="switch">
+              <input type="checkbox" id="preferEleven" />
+              <span class="switch__track" aria-hidden="true"><span class="switch__thumb"></span></span>
+              <span>Prefer ElevenLabs when a key is present</span>
+            </label>
+
+            <label class="field">
+              <span class="field__label">System voice</span>
+              <select class="text-input" id="voiceSelect">
+                <option value="">Auto — best British male available</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Rate <b id="rateValue">1.00×</b></span>
+              <input class="range" type="range" id="rate" min="0.6" max="1.5" step="0.01" />
+            </label>
+
+            <label class="field">
+              <span class="field__label">Pitch <b id="pitchValue">0.92</b></span>
+              <input class="range" type="range" id="pitch" min="0.6" max="1.4" step="0.01" />
+            </label>
+
+            <label class="field">
+              <span class="field__label">Volume <b id="volumeValue">100%</b></span>
+              <input class="range" type="range" id="volume" min="0" max="1" step="0.01" />
+            </label>
+
+            <button type="button" class="btn" id="testVoice">Test voice</button>
+          </section>
+
+          <section class="panel__section">
+            <h3>Memory</h3>
+            <p class="note" id="factsEmpty">Nothing stored yet. Say &ldquo;remember that…&rdquo; and it lands here.</p>
+            <ul class="chips" id="factsList"></ul>
+
+            <div id="notesWrap" hidden>
+              <h3 class="panel__subhead">Notes</h3>
+              <ul class="chips chips--notes" id="notesList"></ul>
+            </div>
+          </section>
+
+          <section class="panel__section panel__section--danger">
+            <h3>Maintenance</h3>
+            <div class="row">
+              <button type="button" class="btn btn--ghost" id="clearConversation">Clear conversation</button>
+              <button type="button" class="btn btn--danger" id="resetAll">Reset everything</button>
+            </div>
+            <p class="note">
+              Memory lives in this browser&rsquo;s local storage. Nothing is stored on the server.
+            </p>
+          </section>
+        </div>
+      </aside>
+    </div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
